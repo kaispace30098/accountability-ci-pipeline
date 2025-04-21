@@ -1,0 +1,31 @@
+name: Manual Deploy to Azure DevOps
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: true
+        default: 'main'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Set up Azure CLI
+        uses: azure/cli-action@v2
+        with:
+          azcliversion: '2.28.0'
+
+      - name: Deploy to Azure DevOps
+        env:
+          AZURE_DEVOPS_EXT_PATVAR: ${{ secrets.AZURE_DEVOPS_PAT }}
+        run: |
+          az devops login --token $AZURE_DEVOPS_EXT_PATVAR
+          git remote add azure https://dev.azure.com/your_organization/your_project/_git/your_repo
+          git push azure ${{ github.event.inputs.branch }}
