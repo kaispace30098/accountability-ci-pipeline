@@ -8,6 +8,9 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "pandas (==2.2.3)",
+    "pyodbc (==5.2.0)",
+    "pytest (==8.3.5)"
 ]
 
 [tool.poetry]
