@@ -24,3 +24,34 @@ jobs:
       - name: Run tests with pytest inside Docker container
         run: |
           docker run --rm myapp pytest
+
+
+  # deploy:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   if: github.event.pull_request.merged == true
+
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+
+  #     - name: Set up Azure CLI
+  #       uses: azure/setup-azurecli@v1
+  #       with:
+  #         version: '2.28.0'
+
+  #     - name: Install Azure DevOps CLI extension
+  #       run: |
+  #         az extension add --name azure-devops
+
+  #     - name: Deploy to Azure DevOps
+  #       uses: azure/cli-action@v2
+  #       with:
+  #         azcliversion: '2.28.0'
+  #       env:
+  #         AZURE_DEVOPS_EXT_PATVAR: ${{ secrets.AZURE_DEVOPS_PAT }}
+  #       run: |
+  #         az devops login --token $AZURE_DEVOPS_EXT_PATVAR
+  #         git remote add azure https://dev.azure.com/your_organization/your_project/_git/your_repo
+  #         git push azure main
+
