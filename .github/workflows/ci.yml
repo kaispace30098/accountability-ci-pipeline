@@ -1,33 +1,76 @@
-
 name: CI Pipeline
 
 on:
+  push:
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  build:
-    name: accountability unit tests
-    #runs-on: ubuntu-latest
+  build-and-test:
     runs-on:
-    - self-hosted
-    - windows
-    - x64
+      - self-hosted
+      - windows
+      - x64
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+      - name: Set up Docker BuildKit
+        run: echo "DOCKER_BUILDKIT=1" >> $GITHUB_ENV
 
       - name: Build Docker image
         run: |
-          docker build -t myapp -f ./Dockerfile .
+          docker build \
+            --secret id=db_username,env=DB_USERNAME \
+            --secret id=db_password,env=DB_PASSWORD \
+            --secret id=db_server,env=DB_SERVER \
+            --secret id=db_name,env=DB_NAME \
+            -t accountability-ci-pipeline .
+        env:
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_SERVER: ${{ secrets.DB_SERVER }}
+          DB_NAME: ${{ secrets.DB_NAME }}
 
-      - name: Run tests with pytest inside Docker container
+      - name: Run tests
         run: |
-          docker run --rm myapp pytest
+          docker run --rm \
+            -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
+            -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            -e DB_SERVER=${{ secrets.DB_SERVER }} \
+            -e DB_NAME=${{ secrets.DB_NAME }} \
+            accountability-ci-pipeline
+
+# name: CI Pipeline
+
+# on:
+#   pull_request:
+#     branches:
+#       - main
+
+# jobs:
+#   build:
+#     name: accountability unit tests
+#     #runs-on: ubuntu-latest
+#     runs-on:
+#     - self-hosted
+#     - windows
+#     - x64
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+
+#       - name: Set up Docker Buildx
+#         uses: docker/setup-buildx-action@v2
+
+#       - name: Build Docker image
+#         run: |
+#           docker build -t myapp -f ./Dockerfile .
+
+#       - name: Run tests with pytest inside Docker container
+#         run: |
+#           docker run --rm myapp pytest
 
 
   # deploy:
