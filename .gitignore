@@ -1,9 +1,8 @@
-# Ignore Python bytecode files
 *.pyc
 *.pyo
 *.pyd
 __pycache__/
 .env
-# 排除自托管 runner 安裝目錄
+
 /actions-runner/
 /actions-runner/**
