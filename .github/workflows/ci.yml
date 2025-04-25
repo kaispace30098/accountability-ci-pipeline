@@ -8,11 +8,10 @@ on:
 jobs:
   build:
     name: accountability unit tests
-    #runs-on: ubuntu-latest
     runs-on:
-    - self-hosted
-    - windows
-    - x64
+      - self-hosted
+      - windows
+      - x64
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -21,13 +20,7 @@ jobs:
         run: echo "DOCKER_BUILDKIT=1" >> $GITHUB_ENV
 
       - name: Build Docker image
-        run: |
-          docker build \
-            --secret id=db_username,env=DB_USERNAME \
-            --secret id=db_password,env=DB_PASSWORD \
-            --secret id=db_server,env=DB_SERVER \
-            --secret id=db_name,env=DB_NAME \
-            -t accountability-ci-pipeline .
+        run: docker build --secret id=db_username,env=DB_USERNAME --secret id=db_password,env=DB_PASSWORD --secret id=db_server,env=DB_SERVER --secret id=db_name,env=DB_NAME -t accountability-ci-pipeline .
         env:
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
@@ -35,13 +28,8 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
 
       - name: Run tests
-        run: |
-          docker run --rm \
-            -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
-            -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-            -e DB_SERVER=${{ secrets.DB_SERVER }} \
-            -e DB_NAME=${{ secrets.DB_NAME }} \
-            accountability-ci-pipeline
+        run: docker run --rm -e DB_USERNAME=${{ secrets.DB_USERNAME }} -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} -e DB_SERVER=${{ secrets.DB_SERVER }} -e DB_NAME=${{ secrets.DB_NAME }} accountability-ci-pipeline
+
 
 # name: CI Pipeline
 
