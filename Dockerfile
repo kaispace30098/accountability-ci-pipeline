@@ -1,40 +1,39 @@
-# Use an official Python runtime as a parent image
-FROM python:3.8-slim-buster
+FROM python:3.12.6-slim-bookworm
 
-# Set environment variables to prevent interactive prompts during package installation
+# Set environment variables to accept the EULA and disable interactive prompts
+ENV ACCEPT_EULA=Y
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install system dependencies and Microsoft ODBC Driver 17
+# Update package lists and install required packages
 RUN apt-get update && \
-    apt-get install -y \
+    apt-get install -y --no-install-recommends \
     curl \
-    gnupg2 \
+    gnupg \
+    ca-certificates \
+    unixodbc \
     unixodbc-dev \
-    gcc && \
-    curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
-    curl https://packages.microsoft.com/config/debian/10/prod.list > /etc/apt/sources.list.d/mssql-release.list && \
-    apt-get update && \
-    ACCEPT_EULA=Y apt-get install -y msodbcsql17 && \
-    apt-get clean
+    build-essential && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Add Microsoft's GPG key and repository for ODBC Driver 17
+RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
+    curl https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list && \
+    apt-get update
+
+# Install ODBC Driver 17 for SQL Server
+RUN ACCEPT_EULA=Y apt-get install -y msodbcsql17 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install pyodbc
 RUN pip install --no-cache-dir pyodbc
 
-# Set the working directory in the container
+# Copy application code and install Python dependencies
 WORKDIR /app
+COPY . .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the current directory contents into the container at /app
-COPY . /app
-
-# Set environment variables for database connection
-ENV DB_SERVER=your_db_server
-ENV DB_NAME=your_db_name
-ENV DB_USERNAME=your_db_username
-ENV DB_PASSWORD=your_db_password
-
-# Run your application
-CMD ["python", "your_app.py"]
-
+# Set the default command to run tests
+CMD ["pytest"]
 #==========================================================================================#
 # FROM python:3.12.6-slim-bookworm
 
