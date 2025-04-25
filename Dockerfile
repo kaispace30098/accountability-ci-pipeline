@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.4
 FROM python:3.12.6-slim-bookworm
 
 WORKDIR /app
@@ -30,7 +29,7 @@ RUN apt-get update && \
 # Copy requirements and install Python dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+    pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org -r requirements.txt
 
 # Copy application code
 COPY . .
