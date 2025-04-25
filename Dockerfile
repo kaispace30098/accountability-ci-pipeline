@@ -30,8 +30,16 @@ COPY . .
 
 ENV PYTHONPATH="/app/src"
 
+# Example of using secrets during build (if needed)
+# RUN --mount=type=secret,id=db_username \
+#     --mount=type=secret,id=db_password \
+#     --mount=type=secret,id=db_server \
+#     --mount=type=secret,id=db_name \
+#     your-command-that-uses-secrets
+
 # Default command
 CMD ["pytest"]
+
 #=========================================================================================#
 # FROM python:3.12.6-slim-bookworm
 
