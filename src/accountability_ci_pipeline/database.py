@@ -13,7 +13,7 @@ def fetch_student_data(fiscalyear):
         raise ValueError("Database credentials are not set in environment variables.")
 
     cnxn_str = (
-        f"Driver={{ODBC Driver 17 for SQL Server}};"
+        f"Driver={{ODBC Driver 18 for SQL Server}};"
         f"Server={server};"
         f"Database={database};"
         f"UID={username};"

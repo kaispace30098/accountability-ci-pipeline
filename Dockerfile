@@ -3,7 +3,7 @@ FROM python:3.12.6-slim-bookworm
 
 WORKDIR /app
 
-# Install necessary packages
+# Install necessary packages and update CA certificates
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
@@ -12,7 +12,8 @@ RUN apt-get update && \
     gnupg \
     unixodbc \
     unixodbc-dev && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    update-ca-certificates
 
 # Import Microsoft's GPG key and configure the repository
 RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | \
