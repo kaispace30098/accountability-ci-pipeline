@@ -12,7 +12,7 @@ def test_sql_connection():
 
     connection_string = (
         f"DRIVER={{ODBC Driver 18 for SQL Server}};"
-        f"SERVER={server};"
+        f"SERVER={server},1433;"
         f"DATABASE={database};"
         f"UID={username};"
         f"PWD={password};"
