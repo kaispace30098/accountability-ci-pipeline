@@ -2,12 +2,11 @@ name: CI Pipeline
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build:
-    name: Accountability Unit Tests
+    name: accountability unit test
     runs-on:
       - self-hosted
       - windows
@@ -18,25 +17,35 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Start SQL Server engine
-        run: docker run -d --name sqlci -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=${{ secrets.SA_PASSWORD }}" -p 1433:1433 mcr.microsoft.com/mssql/server:2022-latest    # Spins up the headless SQL Server engine in Docker 
+        run: docker run -d --name sqlci \
+          -e "ACCEPT_EULA=Y" \
+          -e "MSSQL_SA_PASSWORD=${{ secrets.SA_PASSWORD }}" \
+          -p 1433:1433 \
+          mcr.microsoft.com/mssql/server:2022-latest
+        # The official SQL Server engine image, mapping container port 1433→host :contentReference[oaicite:0]{index=0}.
 
-      - name: Wait for SQL Server to be ready
-        run: |
-          $pw = '${{ secrets.SA_PASSWORD }}'
-          do {
-            Start-Sleep -Seconds 1
-            docker exec sqlci /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $pw -Q "SELECT 1" > $null 2>&1
-          } until ($LASTEXITCODE -eq 0)                                                                             # Polls until SQL Server accepts connections 
+      - name: Wait briefly for SQL Server to initialize
+        run: Start-Sleep -Seconds 30
+        # A fixed delay avoids PowerShell quoting errors around `sqlcmd` :contentReference[oaicite:1]{index=1}.
 
-      - name: Build Docker image
-        run: docker build -t accountability-ci-pipeline .                                                             # No BuildKit secrets needed at build time :contentReference[oaicite:0]{index=0}
+      - name: Build application Docker image
+        run: docker build -t accountability-ci-pipeline .
+        # No BuildKit secrets—pass credentials at runtime :contentReference[oaicite:2]{index=2}.
 
-      - name: Run tests
-        run: docker run --rm -e DB_SERVER=host.docker.internal -e DB_USERNAME=sa -e DB_PASSWORD="${{ secrets.SA_PASSWORD }}" -e DB_NAME=master accountability-ci-pipeline  # Tests connect to SQL via host.docker.internal 
+      - name: Run pytest integration tests
+        run: docker run --rm \
+          -e DB_SERVER=host.docker.internal \
+          -e DB_USERNAME=sa \
+          -e DB_PASSWORD="${{ secrets.SA_PASSWORD }}" \
+          -e DB_NAME=master \
+          accountability-ci-pipeline
+        # Inside Linux containers, `host.docker.internal` resolves to the Windows host :contentReference[oaicite:3]{index=3}.
 
       - name: Tear down SQL Server
         if: always()
-        run: docker rm -f sqlci                                                                                     # Clean up the SQL container
+        run: docker rm -f sqlci
+        # Ensures cleanup even on test failures
+                                                                           # Clean up the SQL container
 
 
 # name: CI Pipeline
