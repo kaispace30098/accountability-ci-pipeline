@@ -12,24 +12,47 @@ jobs:
       - self-hosted
       - windows
       - x64
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Docker BuildKit
-        run: echo "DOCKER_BUILDKIT=1" >> $GITHUB_ENV
+      - name: Start SQL Server engine
+        run: |
+          docker run -d --name sqlci \
+            -e ACCEPT_EULA=Y \
+            -e SA_PASSWORD="${{ secrets.SA_PASSWORD }}" \
+            -p 1433:1433 \
+            mcr.microsoft.com/mssql/server:2022-latest
+        # Official SQL Server Linux container; maps container 1433→host 1433 :contentReference[oaicite:1]{index=1}
+
+      - name: Wait for SQL Server to be ready
+        shell: pwsh
+        run: |
+          $pw = '${{ secrets.SA_PASSWORD }}'
+          do {
+            Start-Sleep -Seconds 1
+            $ok = docker exec sqlci /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $pw -Q "SELECT 1" -b 2>$null
+          } until ($LASTEXITCODE -eq 0)
+        # Polls the container until `SELECT 1` succeeds :contentReference[oaicite:2]{index=2}
 
       - name: Build Docker image
-        run: docker build --secret id=db_username,env=DB_USERNAME --secret id=db_password,env=DB_PASSWORD --secret id=db_server,env=DB_SERVER --secret id=db_name,env=DB_NAME -t accountability-ci-pipeline .
-        env:
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_SERVER: ${{ secrets.DB_SERVER }}
-          DB_NAME: ${{ secrets.DB_NAME }}
+        run: docker build -t accountability-ci-pipeline .
+        # No need for BuildKit secrets here—secrets are passed at runtime :contentReference[oaicite:3]{index=3}
 
       - name: Run tests
-        run: docker run --rm -e DB_USERNAME=${{ secrets.DB_USERNAME }} -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} -e DB_SERVER=${{ secrets.DB_SERVER }} -e DB_NAME=${{ secrets.DB_NAME }} accountability-ci-pipeline
+        run: |
+          docker run --rm \
+            -e DB_SERVER=host.docker.internal \
+            -e DB_USERNAME=sa \
+            -e DB_PASSWORD="${{ secrets.SA_PASSWORD }}" \
+            -e DB_NAME=master \
+            accountability-ci-pipeline
+        # Inside a Linux container on Docker Desktop, `host.docker.internal` resolves to the Windows host :contentReference[oaicite:4]{index=4}
 
+      - name: Tear down SQL Server
+        if: always()
+        run: docker rm -f sqlci
 
 # name: CI Pipeline
 

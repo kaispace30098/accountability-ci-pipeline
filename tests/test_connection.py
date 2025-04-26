@@ -16,6 +16,7 @@ def test_sql_connection():
         f"DATABASE={database};"
         f"UID={username};"
         f"PWD={password};"
+        "Encrypt=no;"
     )
 
     try:
