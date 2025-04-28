@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Accountability Unit Tests
+    name: accountability unit tests
     runs-on:
       - self-hosted
       - windows
