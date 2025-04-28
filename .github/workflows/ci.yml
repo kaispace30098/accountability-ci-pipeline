@@ -14,39 +14,27 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3  # Standard checkout step :contentReference[oaicite:2]{index=2}
 
       - name: Start SQL Server engine (CI-only)
-        run: |
-          docker run -d --name sqlci \
-            -e "ACCEPT_EULA=Y" \
-            -e "MSSQL_SA_PASSWORD=${{ secrets.SA_PASSWORD }}" \
-            -p 1433:1433 \
-            mcr.microsoft.com/mssql/server:2022-latest
-        # Using a single-line (with backslashes only for visual clarity) works regardless of shell :contentReference[oaicite:2]{index=2}
+        run: docker run -d --name sqlci -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=${{ secrets.SA_PASSWORD }}" -p 1433:1433 mcr.microsoft.com/mssql/server:2022-latest
+        # Single-line invocation avoids any shell-specific line-continuation issues :contentReference[oaicite:3]{index=3}
 
       - name: Wait for SQL Server to initialize
-        run: Start-Sleep -Seconds 30
-        # Give SQL Server time to come online :contentReference[oaicite:3]{index=3}
+        run: Start-Sleep -Seconds 30  # Allows SQL Server to fully start :contentReference[oaicite:4]{index=4}
 
       - name: Build application Docker image
         run: docker build -t accountability-ci-pipeline .
-        # Build your test image from the Dockerfile :contentReference[oaicite:4]{index=4}
+        # Builds the test image from your Dockerfile :contentReference[oaicite:5]{index=5}
 
       - name: Run pytest integration tests
-        run: |
-          docker run --rm --network=host \
-            -e DB_SERVER=localhost \
-            -e DB_NAME=master \
-            -e DB_USERNAME=sa \
-            -e DB_PASSWORD="${{ secrets.SA_PASSWORD }}" \
-            accountability-ci-pipeline
-        # Single-line invocation ensures compatibility; using host networking to reach 'sqlci' on localhost:1433 :contentReference[oaicite:5]{index=5}
+        run: docker run --rm --network=host -e DB_SERVER=localhost -e DB_NAME=master -e DB_USERNAME=sa -e DB_PASSWORD="${{ secrets.SA_PASSWORD }}" accountability-ci-pipeline
+        # Single-line ensures Docker parses all flags and image name correctly :contentReference[oaicite:6]{index=6}
 
       - name: Tear down SQL Server
         if: always()
         run: docker rm -f sqlci
-        # Clean up even if tests fail :contentReference[oaicite:6]{index=6}
+        # Cleans up the SQL Server container even if tests fail :contentReference[oaicite:7]{index=7}
 
 # name: CI Pipeline
 
