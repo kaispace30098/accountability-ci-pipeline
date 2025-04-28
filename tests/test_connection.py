@@ -51,7 +51,7 @@ def test_performance_values():
             results = cursor.fetchall()
 
             # Allowed values
-            allowed_values = {None, 1, 2, 3, 4}
+            allowed_values = {None, 1, 3, 4}
 
             # Check each Performance value
             for row in results:
