@@ -28,7 +28,7 @@ def test_sql_connection():
                 pytest.fail("No data returned from the query.")
     except Exception as e:
         pytest.fail(f"Database connection failed: {e}")
-        
+
 def test_performance_values():
     # Get database connection info from environment variables
     server = os.getenv('DB_SERVER')
@@ -51,7 +51,7 @@ def test_performance_values():
             results = cursor.fetchall()
 
             # Allowed values
-            allowed_values = {None, 1, 2, 3, 4}
+            allowed_values = {None, 1,  3, 4}
 
             # Check each Performance value
             for row in results:
