@@ -1,13 +1,9 @@
-# ───────────────────────────────────────────────────────────────────────────────
 # Base: Python 3.12 on Debian Bookworm slim
-# ───────────────────────────────────────────────────────────────────────────────
 FROM python:3.12.6-slim-bookworm
 
 WORKDIR /app
 
-# ───────────────────────────────────────────────────────────────────────────────
 # Install system deps + ODBC Driver 18 for SQL Server
-# ───────────────────────────────────────────────────────────────────────────────
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
       build-essential \
@@ -27,9 +23,7 @@ RUN apt-get update && \
     ACCEPT_EULA=Y apt-get install -y msodbcsql18 && \
     rm -rf /var/lib/apt/lists/*
 
-# ───────────────────────────────────────────────────────────────────────────────
 # Install Python dependencies
-# ───────────────────────────────────────────────────────────────────────────────
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --trusted-host pypi.org \
@@ -37,28 +31,20 @@ RUN pip install --upgrade pip && \
                 --trusted-host files.pythonhosted.org \
                 -r requirements.txt
 
-# ───────────────────────────────────────────────────────────────────────────────
 # Copy code and set PYTHONPATH
-# ───────────────────────────────────────────────────────────────────────────────
 COPY . .
 ENV PYTHONPATH="/app/src"
 
-# ───────────────────────────────────────────────────────────────────────────────
 # Default DB config for **local** development:
-#   • Containers use host.docker.internal to reach your machine’s SQL Server :contentReference[oaicite:6]{index=6}
-# ───────────────────────────────────────────────────────────────────────────────
+# Containers use host.docker.internal or localhost to reach your machine’s SQL Server :contentReference[oaicite:10]{index=10}
 ENV DB_SERVER=host.docker.internal \
     DB_NAME=YourActualDatabase \
     DB_USERNAME=sa \
     DB_PASSWORD="YourRealPassword"
 
-# ───────────────────────────────────────────────────────────────────────────────
 # Default command: run pytest
-# ───────────────────────────────────────────────────────────────────────────────
 CMD ["pytest"]
 
-#=========================================================================================#
-# FROM python:3.12.6-slim-bookworm
 
 # # Set working directory
 # WORKDIR /app
