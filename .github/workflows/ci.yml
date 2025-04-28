@@ -16,29 +16,37 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Start SQL Server engine
-        run: docker run -d --name sqlci -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=${{ secrets.SA_PASSWORD }}" -p 1433:1433 mcr.microsoft.com/mssql/server:2022-latest
-        # Single-line avoids stray '\' issues in PowerShell :contentReference[oaicite:4]{index=4}
+      - name: Start SQL Server engine (CI-only)
+        run: |
+          docker run -d \
+            --name sqlci \
+            -e "ACCEPT_EULA=Y" \
+            -e "MSSQL_SA_PASSWORD=${{ secrets.SA_PASSWORD }}" \
+            -p 1433:1433 \
+            mcr.microsoft.com/mssql/server:2022-latest
+        # Pulls Microsoft’s SQL Server image and runs it as 'sqlci' :contentReference[oaicite:0]{index=0}
 
       - name: Wait for SQL Server to initialize
         run: Start-Sleep -Seconds 30
-        # A fixed delay is simpler than quoting a SQLCMD loop in PowerShell :contentReference[oaicite:5]{index=5}
+        # Gives SQL Server time to come online :contentReference[oaicite:1]{index=1}
 
       - name: Build application Docker image
         run: docker build -t accountability-ci-pipeline .
-        # BuildKit secrets not needed here—env vars pass at run time 
+        # Creates 'accountability-ci-pipeline' image from our Dockerfile :contentReference[oaicite:2]{index=2}
 
       - name: Run pytest integration tests
-        run: docker run --rm -e DB_SERVER=host.docker.internal -e DB_USERNAME=sa -e DB_PASSWORD="${{ secrets.SA_PASSWORD }}" -e DB_NAME=master accountability-ci-pipeline
-        # Inside Linux containers on Docker Desktop, 'host.docker.internal:1433' reaches your Windows host :contentReference[oaicite:6]{index=6}
+        run: |
+          docker run --rm \
+            -e DB_SERVER=sqlci \
+            -e DB_NAME=master \
+            -e DB_USERNAME=sa \
+            -e DB_PASSWORD="${{ secrets.SA_PASSWORD }}" \
+            accountability-ci-pipeline
+        # Overrides defaults so tests hit the fresh SQL Server container named 'sqlci' :contentReference[oaicite:3]{index=3}
 
       - name: Tear down SQL Server
         if: always()
         run: docker rm -f sqlci
-
-        # Ensures cleanup even on test failures
-                                                                           # Clean up the SQL container
-
 
 # name: CI Pipeline
 

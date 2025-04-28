@@ -22,7 +22,7 @@ def test_sql_connection():
     try:
         with pyodbc.connect(connection_string, timeout=5) as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT 1")
+            cursor.execute("SELECT top(1) SAISID FROM AccountabilityArchive.static.FinalStaticFile2024")
             result = cursor.fetchone()
             assert result[0] == 1, "Unexpected result from test query."
     except Exception as e:
