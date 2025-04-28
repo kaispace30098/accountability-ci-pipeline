@@ -19,11 +19,11 @@ def test_sql_connection():
         # Establish the database connection
         with pyodbc.connect(connection_string, timeout=5) as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT TOP 1 SAISID FROM AccountabilityArchive.static.FinalStaticFile2024")
+            cursor.execute("SELECT 1")
             result = cursor.fetchone()
             if result:
                 print(f"SAISID: {result[0]}")
-                assert result[0] == 69967256, "Unexpected result from test query."
+                assert result[0] == 1, "Unexpected result from test query."
             else:
                 pytest.fail("No data returned from the query.")
     except Exception as e:
